@@ -8,19 +8,12 @@ using namespace std;
 uint8_t kLeafChar = 0;
 static constexpr uint8_t kEmptyCheck = 0xFF;
 static constexpr int kEmptyBase = 0xFFFFFFFF;
-/*
-struct DataItem{
-    int value = -1;
-    int key;
-};
-struct DataItem hashArray[SIZE] = {};//初期化
-*/
 std::vector<bool> empty_check = {};
 struct DataItem {
         int key,value;
         DataItem(int k=0, int v=-1) : key(k),value(v){}
     };
-    std::vector<DataItem> hashArray;//外から
+std::vector<DataItem> hashArray = {};
 
 /* ハッシュ関数の定義 */
 int hashCode(int key){
@@ -54,7 +47,7 @@ void set(int key, int value){
     hashArray[key].value = value;
     hashArray[key].key = key;
     empty_check[key] = 1;//使用済みにする
-    std::cout << sizeof(empty_check[key]);//8
+    //std::cout << sizeof(empty_check[key]);//8
 
     //get the hash
     int hashIndex = hashCode(key);
@@ -69,107 +62,77 @@ void set(int key, int value){
         //std::cout << "rehash = " << collision << std::endl;
     }
     collision = 0;
+    //std::cout << "rehash = " << collision << std::endl;
+    //std::cout << "hashtable_number = " << hashIndex << std::endl;
 }
 void display(){
-    for(int i = 0; i < empty_check.size();i++){
+    std::cout << "--------------------------" <<"\n";
+    for(int i = 0; i < hashArray.size();i++){
         std::cout << i << "  ";
         std::cout << empty_check[i] << "  ";
         std::cout << hashArray[i].key << "-->" << hashArray[i].value << std::endl;
 
     }
 }
-/*
-int find_base(const std::unordered_map<uint8_t, int>& row) {
-        for (int base = 0; true; ++base) {
-            bool found = true;
-            for (auto p : row) {
-                uint8_t c = p.first;
-                int next_row = p.second;
-                std::cout << "top =" << next_row << std::endl;
-                int index = base + c;//xorに変更　
-                if (index < hashArray.size() and hashArray[index].value != -1) {
-                    found = false;
-                    break;
-                }
-            }
-            if (found) {
-                return base;
-            }
-        }
-        return hashArray.size();
-    }
 
-void expand(int index) {
-    if (index < hashArray.size())
-        return;
-    hashArray.resize(index+1);
-}
-*/  
 void hash_try(const std::vector<std::string> str_list) {
     // Create hash_table
+    //std::vector<std::string> str_list;
+    //std::vector<uint8_t> code;
+    int hashIndex = 1;
     std::vector<std::unordered_map<uint8_t, int>> table(1);
-    for (auto& key : str_list) {
+    for (auto& keys : str_list) {
         int node = 0;
-        //hashArray.resize();
-        //int new_node = 0;
-        std::cout << "key" << key << std::endl;
-        for (uint8_t c : key) {
-            if (table[node].count(c) == 1) { // exists
-                node = table[node][c];
-                //hashArray[c].key = node;
+        int s,t = 0;
+        std::cout << "key_word" << keys << std::endl;
+        for (uint8_t c : keys){
+            //int hashIndex = 0;
+            std::cout << c << std::endl;
+            int key,value;//key→遷移文字、遷移元 value→遷移先でハッシュテーブルに保存
+            if (table[node].count(c) == 1) { // black→blueの時の blまで
+                    node = table[node][c];
+                    std::cout << "common spell" << std::endl;
+                    std::cout << "node" << node << std::endl;
             } 
-            else {
+            else{//新しいノードが出てきたとき
+                hashIndex++;
                 auto new_node = table.size();
-                table.emplace_back();
+                table.emplace_back();//1個余裕を持たせる
                 table[node][c] = new_node;
-                empty_check.resize(new_node + 1,0);
-                hashArray.resize(new_node + 1);
-                //とりあえず今はセグメントエラー回避のためにここでハッシュテーブルの
-                //拡張をしています
-                set(node,new_node);//key→遷移文字、遷移元 value→遷移先でハッシュテーブルに保存
-                                   //多分この条件文でしか保存していないので要素が少ないと思っています
+                std::cout << "node" << node << std::endl;
+                std::cout << "new_node appear!!!" << std::endl;
+                std::cout << "new_node" << new_node << std::endl;
+                s = node;t = new_node;
                 node = new_node;
+                key = s << 8 | c;
+                value = t;
+                hashArray.emplace_back(key,value);
+                empty_check.emplace_back(1);
+                std::cout << "key" << key << std::endl;
+                std::cout << "value" << value << std::endl;
+                std::cout << "hashIndex" << hashIndex << std::endl;
+                //ハッシュテーブルにセット 
             }
-            std::cout << "code =" << c << std::endl;
-            std::cout << "node =" << node << std::endl;
-            //std::cout << "now_node" << new_node << std::endl;
         }
-        if (table[node].count(kLeafChar) == 0) {
-            table[node][kLeafChar] = 1;
-            std::cout << "leaf_node" << std::endl;
+        //Q1,tableを使わずに、状態番号を割り当てる方法が思いつきません
+        /*Q2,今のプログラムでは、新しいノードが出るたびに後ろからkeyとvalueをハッシュテーブルに
+        入れているだけなのですが、これではハッシュテーブルの番号の情報が使えない気がします。
+        (再ハッシュや衝突回数が発生しないので)
+        ・ハッシュテーブルにkeyとvalueを格納するタイミング
+        ・ハッシュテーブルの何番目にkeyとvalueを入れればよいのか
+        ・ハッシュテーブルの成長のタイミングと条件文(教科書をみたのですが、見つけられませんでした)
+         を教えていただけるとありがたいです。
+        */
+        if (table[node].count(kLeafChar) == 0){
+                table[node][kLeafChar] = 1;
+                std::cout << "------word_end--------" << std::endl;
         }
+        
     }
-    std::cout << "************************" << std::endl;
-    /*
-     std::vector<int> row_to_index(table.size());
-        //bc_ = {0, kEmptyCheck}; // set root element
-        row_to_index[0] = 0;
-        for (int i = 0; i < table.size(); i++) {
-            auto& row = table[i];
-            if (row.empty())
-                continue;
-            int parent_index = row_to_index[i];
-            std::cout << "parent" << parent_index << std::endl;
-            int key = find_base(row);
-            std::cout << "parent index ="<< parent_index <<"\n";
-            std::cout << "findbase complete" <<"\n";
-            hashArray[parent_index].key = key;
-            /*
-            for (auto p : row) {
-                std::cout << "KKKKKKKKKK" <<"\n";
-                uint8_t c = p.first;
-                int next_row = p.second;
-                int next_index = key + c;//xorに変更
-                expand(next_index);
-                std::cout << "expand complete" <<"\n";
-                hashArray[next_index].value = parent_index;
-                row_to_index[next_row] = next_index;
-            }
-        }*/
+    std::cout << "hashtable_complete" <<"\n";
 }
 
 int main(int argc, char* argv[]){
-    //hashArray.resize(256);
     int num = 0;
     std::cout << "file_number" << "\n";
     std::cin >> num;
@@ -185,5 +148,5 @@ int main(int argc, char* argv[]){
     }
   hash_try(str_list);
   display();
-  return 0;
+  return 0;//プログラム終了
 }
