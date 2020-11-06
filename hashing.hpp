@@ -15,16 +15,14 @@ public:
 
 class HashTable : public HashTableInterface{
 // TODO: Needs implementation by yourself.
-
+private://クラスメンバ変数
 //ハッシュテーブルの要素数の初期値
 static constexpr int null = -1;//データが入っていないことを示す値
 static constexpr int dell = -2;//データが入っていたがそれが削除されたことを示す値
 
-private://クラスメンバ変数
 int SIZE = 4;//ハッシュテーブルの大きさ(初期値)
 int hash_use = 0;//ハッシュテーブルの使用数
 /* DataItemの定義 */
-public:
 struct DataItem {
         int key,value;
         DataItem(): key(0),value(null){}
@@ -33,11 +31,13 @@ std::vector<DataItem> hashArray;
 //2倍の大きさのハッシュテーブル　拡張してhasharrayにコピーする用
 
 std::vector<bool> empty_check;
+public:
 HashTable(){
     hashArray.resize(SIZE);
     empty_check.resize(SIZE,false);
 };
 
+private:
 /* ハッシュ関数の定義 */
 int hashCode(int key){
     return key % empty_check.size();
@@ -45,6 +45,7 @@ int hashCode(int key){
 
 /* 検索のための関数 */
 /* liner Probingを使っているのでそれに合わせた検索を実装です。 */
+public:
 int const get(int key){
     //get the hash
     
@@ -66,6 +67,15 @@ int const get(int key){
 //ハッシュ値の衝突が発生した場合は、再ハッシュを繰り返して、
 //「空状態」バケットを調べていき、空いているバケットを発見したらデータを格納します。
 void set(int key, int value){
+    int load_factor = hash_use*100/SIZE;
+    //std::cout << "before_expand" << load_factor << "%" << std::endl;
+
+    //keyによる探索の期待計算量が、負荷率をqとしてO(1/(1-q))になる
+    if(load_factor == 50){
+        expand_resize();
+        int load_factor2 = hash_use*100/SIZE;
+        //std::cout << "after_expand" << load_factor2 << "%" << std::endl;
+    }
     //get the hash
     int hashIndex = hashCode(key);
     //move in array until an empty or deleted cell
@@ -76,8 +86,8 @@ void set(int key, int value){
         ++collision;
         //wrap around the table
         hashIndex %=   SIZE;
-        std::cout << "key = " << key << std::endl;
-        std::cout << "collision = " << collision << std::endl;
+        //std::cout << "key = " << key << std::endl;
+        //std::cout << "collision = " << collision << std::endl;
     }
     //std::cout << "hashnumber = " << hashIndex << std::endl;
     collision = 0;
@@ -85,16 +95,6 @@ void set(int key, int value){
     hashArray[hashIndex].key = key;
     empty_check[hashIndex] = true;//使用済みにする
     hash_use++;
-
-    int load_factor = hash_use*100/SIZE;
-    std::cout << "before_expand" << load_factor << "%" << std::endl;
-
-    //valueがインクリメントしてるだけなことを思い出し、こうしました。
-    if(load_factor == 100){
-        expand_resize();
-        int load_factor2 = hash_use*100/SIZE;
-        std::cout << "after_expand" << load_factor2 << "%" << std::endl;
-    }
 }
 void display(){
     for(int i = 0; i < SIZE;i++){
@@ -103,18 +103,19 @@ void display(){
     }
 }
 
+private:
 void expand_resize() {
         SIZE = 2*SIZE;//SIZEを２倍にする
         std::vector<DataItem> hashArray2(SIZE);
         std::vector<bool> empty_check2(SIZE,false);
         int hashIndex = 0;
         int collision = 0;
-        std::cout << "empty =   "<< empty_check.size() << std::endl; 
+        //std::cout << "empty =   "<< empty_check.size() << std::endl; 
         for(int i=0;i < SIZE/2;i++){//拡張する前のSIZE
             if(hashArray[i].key != 0 && hashArray[i].value != -1){//使用要素のみ再配置
                 hashIndex = hashCode(hashArray[i].key);
-                std::cout << "re_set " << hashArray[i].value << std::endl;
-                std::cout << i << std::endl;
+                //std::cout << "re_set " << hashArray[i].value << std::endl;
+                //std::cout << i << std::endl;
                 while (empty_check2[hashIndex] == true){//衝突が起こったとき
                     //go to next cell
                     ++hashIndex;

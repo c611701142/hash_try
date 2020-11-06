@@ -1,6 +1,5 @@
 #include <iostream>
 #include <vector>
-#include <unordered_map>
 #include <fstream>
 
 #include "hash_trie.hpp"
@@ -21,6 +20,20 @@ int main(int argc, char* argv[]){
     for (std::string s; std::getline(ifs, s);){
         str_list.push_back(s);
     }
-  ht_try.hash_try(str_list);
-  return 0;//プログラム終了
+
+    //ht_try.hash_try(str_list);静的トライ １度にすべて渡す (str_list)
+    
+    for(std::string str : str_list) {//動的トライ
+        ht_try.insert(str);//1単語ずつ追加(str)
+        bool check = true;
+        //check = ht_try.contains(str);
+        if(check == false){
+            std::cout << "failed..." << std::endl;
+            exit(0);//プログラム異常終了
+        }
+        else{
+            std::cout << "OK" << std::endl;
+        }
+    }
+    return 0;//プログラム終了
 }
