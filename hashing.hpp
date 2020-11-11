@@ -15,32 +15,34 @@ public:
 
 class HashTable : public HashTableInterface{
 // TODO: Needs implementation by yourself.
-private://クラスメンバ変数
+
+public:
 //ハッシュテーブルの要素数の初期値
 static constexpr int null = -1;//データが入っていないことを示す値
 static constexpr int dell = -2;//データが入っていたがそれが削除されたことを示す値
+static constexpr int invalid = -1;
+static constexpr int invalid_key = -1;
+static constexpr int default_size = 4;
 
-int SIZE = 4;//ハッシュテーブルの大きさ(初期値)
+private://クラスメンバ変数
+int SIZE;//ハッシュテーブルの大きさ(初期値)
 int hash_use = 0;//ハッシュテーブルの使用数
 /* DataItemの定義 */
 struct DataItem {
-        int key,value;
-        DataItem(): key(0),value(null){}
-    };
+    int key,value;
+    DataItem(): key(invalid_key),value(null){}
+};
 std::vector<DataItem> hashArray;
 //2倍の大きさのハッシュテーブル　拡張してhasharrayにコピーする用
+std::vector<bool> exists;
 
-std::vector<bool> empty_check;
 public:
-HashTable(){
-    hashArray.resize(SIZE);
-    empty_check.resize(SIZE,false);
-};
+HashTable(size_t size = default_size) : SIZE(size), hashArray(size), exists(size, false) {}
 
 private:
 /* ハッシュ関数の定義 */
 int hashCode(int key){
-    return key % empty_check.size();
+    return key % SIZE;
 }
 
 /* 検索のための関数 */
@@ -50,8 +52,7 @@ int const get(int key){
     //get the hash
     
     int hashIndex = hashCode(key);
-    
-    while (empty_check[key] == true){//要素が使用済みになるまで
+    while (exists[hashIndex]){
         if (hashArray[hashIndex].key == key)
             return hashArray[hashIndex].value;
             //ここでは256のあまりが返る
@@ -60,7 +61,7 @@ int const get(int key){
         //wrap around the table
         hashIndex %= SIZE;
     }
-    return hashArray[hashIndex].value;//ここでは初期値が返る
+    return invalid;//ここでは初期値が返る
 }
 //ハッシュテーブルの中身を
 /* 挿入のための関数 */
@@ -71,7 +72,7 @@ void set(int key, int value){
     //std::cout << "before_expand" << load_factor << "%" << std::endl;
 
     //keyによる探索の期待計算量が、負荷率をqとしてO(1/(1-q))になる
-    if(load_factor == 50){
+    if(hash_use * 2 >= SIZE){
         expand_resize();
         int load_factor2 = hash_use*100/SIZE;
         //std::cout << "after_expand" << load_factor2 << "%" << std::endl;
@@ -80,7 +81,7 @@ void set(int key, int value){
     int hashIndex = hashCode(key);
     //move in array until an empty or deleted cell
     int collision = 0;//衝突回数 のちにXorshiftで使うかも
-    while (empty_check[hashIndex] == true){//衝突が起こったとき
+    while(exists[hashIndex]){
         //go to next cell
         ++hashIndex;
         ++collision;
@@ -93,44 +94,52 @@ void set(int key, int value){
     collision = 0;
     hashArray[hashIndex].value = value;
     hashArray[hashIndex].key = key;
-    empty_check[hashIndex] = true;//使用済みにする
+    exists[hashIndex] = true;//使用済みにする
     hash_use++;
 }
 void display(){
     for(int i = 0; i < SIZE;i++){
-        std::cout << i << "    " << empty_check[i] << "       ";
+        std::cout << i << "    " << exists[i] << "       ";
         std::cout << hashArray[i].key << "->" << hashArray[i].value << std::endl;
     }
 }
 
 private:
 void expand_resize() {
-        SIZE = 2*SIZE;//SIZEを２倍にする
-        std::vector<DataItem> hashArray2(SIZE);
-        std::vector<bool> empty_check2(SIZE,false);
-        int hashIndex = 0;
-        int collision = 0;
-        //std::cout << "empty =   "<< empty_check.size() << std::endl; 
-        for(int i=0;i < SIZE/2;i++){//拡張する前のSIZE
-            if(hashArray[i].key != 0 && hashArray[i].value != -1){//使用要素のみ再配置
-                hashIndex = hashCode(hashArray[i].key);
-                //std::cout << "re_set " << hashArray[i].value << std::endl;
-                //std::cout << i << std::endl;
-                while (empty_check2[hashIndex] == true){//衝突が起こったとき
-                    //go to next cell
-                    ++hashIndex;
-                    ++collision;
-                    //wrap around the table
-                    hashIndex %= SIZE;
-                }
-                //２倍にした方に再配置
-            hashArray2[hashIndex].value = hashArray[i].value;
-            hashArray2[hashIndex].key = hashArray[i].key;
-            empty_check2[hashIndex] = true;//使用済みにする
-            }
-        }
-        hashArray = std::move(hashArray2);//
-        empty_check = std::move(empty_check2);
+        // SIZE = 2*SIZE;//SIZEを２倍にする
+        // std::vector<DataItem> hashArray2(SIZE);
+        // std::vector<bool> empty_check2(SIZE,false);
+        // int hashIndex = 0;
+        // int collision = 0;
+        // //std::cout << "empty =   "<< exists.size() << std::endl; 
+        // for(int i=0;i < SIZE/2;i++){//拡張する前のSIZE
+        //     if(exists[i]){{//使用要素のみ再配置
+        //         hashIndex = hashCode(hashArray[i].key);
+        //         //std::cout << "re_set " << hashArray[i].value << std::endl;
+        //         //std::cout << i << std::endl;
+        //         while (empty_check2[hashIndex] == true){//衝突が起こったとき
+        //             //go to next cell
+        //             ++hashIndex;
+        //             ++collision;
+        //             //wrap around the table
+        //             hashIndex %= SIZE;
+        //         }
+        //         //２倍にした方に再配置
+        //     hashArray2[hashIndex].value = hashArray[i].value;
+        //     hashArray2[hashIndex].key = hashArray[i].key;
+        //     empty_check2[hashIndex] = true;//使用済みにする
+        //     }
+        // }
+        // hashArray = std::move(hashArray2);//
+        // exists = std::move(empty_check2);
+    HashTable nht(SIZE*2);
+    for (int i = 0; i < SIZE; i++) {
+        if (!exists[i])
+            continue;
+        auto [k, v] = hashArray[i];
+        nht.set(k, v);//--c++17 
+    }
+    *this = std::move(nht);
 }
 
 // tnew にすべてを移す

@@ -4,8 +4,6 @@
 
 #include "hash_trie.hpp"
 
-kuroda2::hash_trie ht_try;//ハッシュトライ呼び出し
-
 int main(int argc, char* argv[]){
     int num = 0;
     std::cout << "file_number" << "\n";
@@ -20,16 +18,17 @@ int main(int argc, char* argv[]){
     for (std::string s; std::getline(ifs, s);){
         str_list.push_back(s);
     }
+    kuroda::hash_trie ht_try;//ハッシュトライ呼び出し
+    //ht_try.hash_try(str_list);//静的トライ １度にすべて渡す (str_list)
 
-    //ht_try.hash_try(str_list);静的トライ １度にすべて渡す (str_list)
     
-    for(std::string str : str_list) {//動的トライ
+    for(const std::string &str : str_list) {//配列の単語数
+        std::cout << "-----key_word-------" << str << std::endl;
         ht_try.insert(str);//1単語ずつ追加(str)
-        bool check = true;
-        //check = ht_try.contains(str);
+        bool check = ht_try.contains(str);
         if(check == false){
             std::cout << "failed..." << std::endl;
-            exit(0);//プログラム異常終了
+            //exit(0);//プログラム異常終了
         }
         else{
             std::cout << "OK" << std::endl;
