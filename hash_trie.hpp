@@ -9,19 +9,13 @@
 
 namespace kuroda {
 
-HashTable ht;//ハッシュテーブル呼び出し
-
-uint8_t kLeafChar = 0;
-
 class hash_trie{
+kuroda::HashTable ht;
 // TODO: Needs implementation by yourself.
-private:
-std::vector<int> leaf_number;
 public:
 hash_trie(){
-    leaf_number.resize(1,0); 
 }
-public:
+uint8_t kLeafChar = 0;
 /*
 void hash_try(const std::vector<std::string>& str_list) {
     // Create hash_table
@@ -69,7 +63,6 @@ void hash_try(const std::vector<std::string>& str_list) {
                 key = create_key(node,kLeafChar);
                 value = table.size();
                 ht.set(key,value);
-                //std::cout << "key_last" << key << std::endl;
                 table[node][kLeafChar] = 1;
                 std::cout << "------word_end--------" << std::endl;
         }    
@@ -81,13 +74,13 @@ void hash_try(const std::vector<std::string>& str_list) {
     std::cout << table.size() <<"\n";
     ht.display();//ハッシュテーブルを表示
 }*/
-
+private:
 int create_key(int node, uint8_t c) const {
     assert(node < (1u<<24));
     return node << 8 | c;
 }
-
-bool contains(const std::string& str) const {//文字列strが辞書にあるかどうか検索
+public:
+bool contains(const std::string& str){//文字列strが辞書にあるかどうか検索
     int node = 0; // root
     std::cout << str << "\n";
     for (uint8_t c : str) {
@@ -100,9 +93,11 @@ bool contains(const std::string& str) const {//文字列strが辞書にあるか
         }
         node = new_node;
     }
+    std::cout << "contain node = "<< node << "\n";
     return ht.get(create_key(node,kLeafChar)) !=  HashTable::invalid;
 }
-
+private:
+int node_count = 0;
 public:
 void insert(const std::string& str){ // 文字列strを辞書に追加
     int node = 0;
@@ -110,13 +105,11 @@ void insert(const std::string& str){ // 文字列strを辞書に追加
     for (uint8_t c : str) {
         //とあるnodeからcで遷移したことがある
         if(ht.get(create_key(node,c)) !=  HashTable::invalid){
-            node = leaf_number[node];
         }
         else{
              //setする(new_nodeの登場)
-            auto new_node = leaf_number.size();
-            leaf_number.emplace_back();
-            leaf_number[node] = new_node;
+            node_count++;
+            auto new_node = node_count;
             int key = create_key(node,c);
             int value = new_node;
             ht.set(key,value);
@@ -124,10 +117,7 @@ void insert(const std::string& str){ // 文字列strを辞書に追加
         }
     }
     ht.set(node,kLeafChar);//終端文字の遷移を格納
-    leaf_number.emplace_back();
-    std::cout << "--------------" << "\n";
-    std::cout << "insert node = "<< node << "\n";
-    std::cout << leaf_number.size() << "\n";
+    node_count++;
     ht.display();
 
 }
