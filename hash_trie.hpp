@@ -113,7 +113,6 @@ void insert(const std::string& str){ // 文字列strを辞書に追加
     }
     node_count++;
     ht.set(create_key(node,kLeafChar),node_count);//終端文字の遷移を格納
-    int a = ht.get(create_key(node, kLeafChar));
    // ht.display();
 
 }
