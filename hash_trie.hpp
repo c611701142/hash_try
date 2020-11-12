@@ -15,7 +15,7 @@ kuroda::HashTable ht;
 public:
 hash_trie(){
 }
-uint8_t kLeafChar = 0;
+static constexpr uint8_t kLeafChar = 0;
 /*
 void hash_try(const std::vector<std::string>& str_list) {
     // Create hash_table
@@ -82,18 +82,13 @@ int create_key(int node, uint8_t c) const {
 public:
 bool contains(const std::string& str){//文字列strが辞書にあるかどうか検索
     int node = 0; // root
-    std::cout << str << "\n";
     for (uint8_t c : str) {
-        std::cout << c << "\n";
         int new_node = ht.get(create_key(node, c));
-        std::cout << "node = "<< node << "\n";
-        std::cout << "new_node =" << new_node <<"\n";
         if(new_node == HashTable::invalid){
             return false;
         }
         node = new_node;
     }
-    std::cout << "contain node = "<< node << "\n";
     return ht.get(create_key(node,kLeafChar)) !=  HashTable::invalid;
 }
 private:
@@ -101,10 +96,9 @@ int node_count = 0;
 public:
 void insert(const std::string& str){ // 文字列strを辞書に追加
     int node = 0;
-     std::cout << str << "\n";
     for (uint8_t c : str) {
-        //とあるnodeからcで遷移したことがある
         if(ht.get(create_key(node,c)) !=  HashTable::invalid){
+            node = ht.get(create_key(node,c));
         }
         else{
              //setする(new_nodeの登場)
@@ -115,10 +109,12 @@ void insert(const std::string& str){ // 文字列strを辞書に追加
             ht.set(key,value);
             node = new_node;
         }
+
     }
-    ht.set(node,kLeafChar);//終端文字の遷移を格納
     node_count++;
-    ht.display();
+    ht.set(create_key(node,kLeafChar),node_count);//終端文字の遷移を格納
+    int a = ht.get(create_key(node, kLeafChar));
+   // ht.display();
 
 }
 /*留意点

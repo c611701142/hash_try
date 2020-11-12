@@ -23,12 +23,11 @@ int main(int argc, char* argv[]){
 
     
     for(const std::string &str : str_list) {//配列の単語数
-        std::cout << "-----key_word-------" << str << std::endl;
         ht_try.insert(str);//1単語ずつ追加(str)
         bool check = ht_try.contains(str);
         if(check == false){
             std::cout << "failed..." << std::endl;
-            //exit(0);//プログラム異常終了
+            exit(0);//プログラム異常終了
         }
         else{
             std::cout << "OK" << std::endl;
