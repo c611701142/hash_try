@@ -9,7 +9,7 @@ namespace kuroda {
 
 class HashTableInterface {
 public:
-  virtual int const get(int key) = 0;
+  virtual int get(int key)const = 0;
   virtual void set(int key, int value) = 0;
 };
 
@@ -23,41 +23,33 @@ static constexpr int dell = -2;//データが入っていたがそれが削除�
 static constexpr int invalid = -1;
 static constexpr int invalid_key = -1;
 static constexpr int default_size = 4;
+HashTable(size_t size = default_size) : SIZE(size), hashArray(size), exists(size, false) {}
 
 private://クラスメンバ変数
 int SIZE;//ハッシュテーブルの大きさ(初期値)
-int hash_use = 0;//ハッシュテーブルの使用数
+int hash_use = 0;//ハッシュテーブルの要素の使用数
 /* DataItemの定義 */
 struct DataItem {
     int key,value;
     DataItem(): key(invalid_key),value(null){}
 };
-std::vector<DataItem> hashArray;
-//2倍の大きさのハッシュテーブル　拡張してhasharrayにコピーする用
-std::vector<bool> exists;
+std::vector<DataItem> hashArray;//ハッシュテーブル
+std::vector<bool> exists;//空判定配列
 
-public:
-HashTable(size_t size = default_size) : SIZE(size), hashArray(size), exists(size, false) {}
-
-private:
-/* ハッシュ関数の定義 */
-int hashCode(int key){
+/* ハッシュ関数*/
+int hashCode(int key)const{
     return key % SIZE;
 }
 
-/* 検索のための関数 */
-/* liner Probingを使っているのでそれに合わせた検索を実装です。 */
 public:
-int const get(int key){
+int get(int key)const{
     //get the hash
     
     int hashIndex = hashCode(key);
     while (exists[hashIndex]){
         if (hashArray[hashIndex].key == key)
             return hashArray[hashIndex].value;
-            //ここでは256のあまりが返る
         hashIndex++;
-
         //wrap around the table
         hashIndex %= SIZE;
     }
@@ -106,32 +98,6 @@ void display(){
 
 private:
 void expand_resize() {
-        // SIZE = 2*SIZE;//SIZEを２倍にする
-        // std::vector<DataItem> hashArray2(SIZE);
-        // std::vector<bool> empty_check2(SIZE,false);
-        // int hashIndex = 0;
-        // int collision = 0;
-        // //std::cout << "empty =   "<< exists.size() << std::endl; 
-        // for(int i=0;i < SIZE/2;i++){//拡張する前のSIZE
-        //     if(exists[i]){{//使用要素のみ再配置
-        //         hashIndex = hashCode(hashArray[i].key);
-        //         //std::cout << "re_set " << hashArray[i].value << std::endl;
-        //         //std::cout << i << std::endl;
-        //         while (empty_check2[hashIndex] == true){//衝突が起こったとき
-        //             //go to next cell
-        //             ++hashIndex;
-        //             ++collision;
-        //             //wrap around the table
-        //             hashIndex %= SIZE;
-        //         }
-        //         //２倍にした方に再配置
-        //     hashArray2[hashIndex].value = hashArray[i].value;
-        //     hashArray2[hashIndex].key = hashArray[i].key;
-        //     empty_check2[hashIndex] = true;//使用済みにする
-        //     }
-        // }
-        // hashArray = std::move(hashArray2);//
-        // exists = std::move(empty_check2);
     HashTable nht(SIZE*2);
     for (int i = 0; i < SIZE; i++) {
         if (!exists[i])
@@ -141,13 +107,6 @@ void expand_resize() {
     }
     *this = std::move(nht);
 }
-
-// tnew にすべてを移す
-/*留意点
-1 ここで使用配列の割合を検知(get_rercent)
-2 1に応じてハッシュテーブルを拡張
-3 再配置を行う
-*/
 
 };
 
